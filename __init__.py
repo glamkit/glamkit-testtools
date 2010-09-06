@@ -125,6 +125,8 @@ class TestToolkit(TestCase):
             try:
                 loaders.remove('django.template.loaders.filesystem.Loader')
                 self.settings.TEMPLATE_LOADERS = loaders
+                # TODO: Test and uncomment
+                #reload(app_directories)
             except ValueError:
                 pass
         # Check if this is the first set-up for this module.
