@@ -1,7 +1,7 @@
 import sys
 
 from django.db import connections, router, transaction, models, DEFAULT_DB_ALIAS
-from django.db.models.loading import load_app as django_load_app
+from django.db.models.loading import cache, load_app as django_load_app
 from django.core.management.color import no_style
 from django.core.management.sql import custom_sql_for_model, emit_post_sync_signal
 from django.contrib.contenttypes.management import update_contenttypes
@@ -98,6 +98,8 @@ def unload_app(app_name):
     for deletion in output:
         cursor.execute(deletion)
     transaction.commit_unless_managed(using=DEFAULT_DB_ALIAS)
+    
+    del cache.app_store[cache.load_app(app_name)]
     
     #update_all_contenttypes()
 
