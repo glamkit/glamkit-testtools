@@ -8,6 +8,7 @@ from django.core.urlresolvers import clear_url_caches
 from django.db.models.loading import load_app as django_load_app
 from django.test import TestCase
 from django.template.loaders import app_directories
+from django.template import loader
 
 from apploader import unload_app, load_app as apploader_load_app 
 
@@ -125,8 +126,7 @@ class TestToolkit(TestCase):
             try:
                 loaders.remove('django.template.loaders.filesystem.Loader')
                 self.settings.TEMPLATE_LOADERS = loaders
-                # TODO: Test and uncomment
-                #reload(app_directories)
+                self._refresh_cache()
             except ValueError:
                 pass
         # Check if this is the first set-up for this module.
@@ -145,6 +145,8 @@ class TestToolkit(TestCase):
                 self.unload_app(self.test_app)
             if hasattr(self.__class__, '_urls'):
                 self.unload_urls(to_original=True)
+#            if not self.use_project_templates:
+#                reload(app_directories)
         self.restore_all_settings()
     
     def setUpModule(self):
@@ -257,6 +259,7 @@ class TestToolkit(TestCase):
         """Refresh the template and templatetags cache after (un)loading an app."""
         # Reload the module to refresh the template cache
         reload(app_directories)
+        loader.template_source_loaders = None
         
         # Since django's r11862 templatags_modules and app_template_dirs are
         # cached, the cache is not emptied between tests. Clear out the cache
