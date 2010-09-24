@@ -2,6 +2,7 @@ import sys
 from copy import copy
 
 from django import template
+from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.core.urlresolvers import clear_url_caches
@@ -272,3 +273,16 @@ class TestToolkit(TestCase):
         if '.tests' in self.__module__:
             return self.__module__[:self.__module__.index('.tests')]
         return self.__module__
+
+    def create_test_user(self, username='testuser', password='apass', email='test@test.com', status='staff'):
+        """Create a test user and log them in to the site."""
+        new_user = User.objects.create_user(username=username, email=email, password=password)
+        if status in ['staff', 'superuser']:
+            new_user.is_staff = True
+            if status == 'superuser':
+                new_user.is_superuser = True
+            new_user.save()
+        login = self.client.login( username=username, password=password )
+        self.assertTrue(login)   
+        return new_user
+        
