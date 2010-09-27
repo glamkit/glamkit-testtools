@@ -1,5 +1,8 @@
 import sys
 from copy import copy
+from operator import add
+from random import sample
+from string import ascii_letters
 
 from django import template
 from django.contrib.auth.models import User
@@ -14,7 +17,24 @@ from django.template import loader
 from apploader import unload_app, load_app as apploader_load_app 
 
 class UniqueNameGenerator(list):
-    pass
+    pass # TODO:
+
+class UserGenerator():
+    def __init__(self):
+        self._items = {}
+    
+    def __getitem__(self, index):
+        if not index in self._items:
+            username = None
+            while not username or username in [user['username'] for user in self._items.values()]:
+                username = reduce(add, sample(ascii_letters, 10))
+            new_user = {
+                'username': username,
+                'password': reduce(add, sample(ascii_letters, 8)),
+                'email': '%s@example.com' % username,
+                }
+            self._items[index] = new_user
+        return self._items[index]
 
 class TestSettings(object):
     def __init__(self):
@@ -86,6 +106,7 @@ class TestToolkit(TestCase):
         super(TestToolkit, self).__init__(*args, **kwargs)
         self.names = UniqueNameGenerator()
         self.settings = TestSettings()
+        self.users = UserGenerator()
         self._test_app_loaded = False
         
         if self._get_module() in TestToolkit._creation_counters:
