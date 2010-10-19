@@ -77,7 +77,7 @@ class TestSettings(object):
             object.__getattribute__(self, 'restore')(attr, to_original=True)
 
 
-class TestToolkit(TestCase):
+class TestToolsCase(TestCase):
     # The module of a test app to load for testing purposes. The urls from
     # the test_app will be used automatically, unless overridden in the
     # urls property.
@@ -103,17 +103,17 @@ class TestToolkit(TestCase):
     _original_urls = []
     
     def __init__(self, *args, **kwargs):
-        super(TestToolkit, self).__init__(*args, **kwargs)
+        super(TestToolsCase, self).__init__(*args, **kwargs)
         self.names = UniqueNameGenerator()
         self.settings = TestSettings()
         self.users = UserGenerator()
         self._test_app_loaded = False
         
-        if self._get_module() in TestToolkit._creation_counters:
-            TestToolkit._creation_counters[self._get_module()] += 1
+        if self._get_module() in TestToolsCase._creation_counters:
+            TestToolsCase._creation_counters[self._get_module()] += 1
         else:
-            TestToolkit._creation_counters[self._get_module()] = 0
-        self._creation_counter = TestToolkit._creation_counters[self._get_module()]
+            TestToolsCase._creation_counters[self._get_module()] = 0
+        self._creation_counter = TestToolsCase._creation_counters[self._get_module()]
         
         if hasattr(self.__class__, 'urls') and self.include_project_urls:
             # Prevent TestCase from finding the urls attribute
@@ -161,7 +161,7 @@ class TestToolkit(TestCase):
     
     def tearDown(self):
         # Check if this is the last tear-down for this module
-        if self._creation_counter == TestToolkit._creation_counters.get(self._get_module(), None):
+        if self._creation_counter == TestToolsCase._creation_counters.get(self._get_module(), None):
             self.tearDownModule()
             if self.localise_app_loading:
                 self.unload_app(self.test_app)
@@ -195,9 +195,9 @@ class TestToolkit(TestCase):
                       calls have been issued, otherwise the models will not
                       have DB tables.
         """
-        if not app or app in TestToolkit._loaded_apps:
+        if not app or app in TestToolsCase._loaded_apps:
             return
-        TestToolkit._loaded_apps.append(app)
+        TestToolsCase._loaded_apps.append(app)
         
         # In case the new app will be overriding templates, make sure it
         # appears before the current app in INSTALLED_APPS
@@ -239,10 +239,10 @@ class TestToolkit(TestCase):
         self._refresh_cache()
     
     def unload_app(self, app):
-        """Unload an app loaded by TestToolkit from the project."""
-        if not app or app not in TestToolkit._loaded_apps:
+        """Unload an app loaded by TestToolsCase from the project."""
+        if not app or app not in TestToolsCase._loaded_apps:
             return
-        TestToolkit._loaded_apps.remove(app)
+        TestToolsCase._loaded_apps.remove(app)
         
         # Remove app from INSTALLED_APPS
         installed_apps = list(settings.INSTALLED_APPS)
