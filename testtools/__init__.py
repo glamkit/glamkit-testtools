@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sys
 from copy import copy
 from operator import add
@@ -16,25 +18,43 @@ from django.template import loader
 
 from apploader import unload_app, load_app as apploader_load_app 
 
-class UniqueNameGenerator(list):
-    pass # TODO:
 
-class UserGenerator():
+class Generator(object):
     def __init__(self):
         self._items = {}
     
     def __getitem__(self, index):
         if not index in self._items:
-            username = None
-            while not username or username in [user['username'] for user in self._items.values()]:
-                username = reduce(add, sample(ascii_letters, 10))
-            new_user = {
-                'username': username,
-                'password': reduce(add, sample(ascii_letters, 8)),
-                'email': '%s@example.com' % username,
-                }
-            self._items[index] = new_user
+            self._items[index] = self.make_item()
         return self._items[index]
+    
+    def make_item(self):
+        raise NotImplementedError()
+
+class StringGenerator(Generator):
+    def __init__(self, length=12, unicode=False):
+        super(StringGenerator, self).__init__()
+        self.length = length
+        if unicode:
+            # TODO: better Unicode character set (currently ՍႶı©ΘƉЁ)
+            self.characters = u'\u054d\u10b6\u0131\xa9\u0398\u0189\u0415\u0308'
+        else:
+            self.characters = ascii_letters[:]
+    
+    def make_item(self):
+        return reduce(add, sample(self.characters, self.length))
+
+class UserGenerator(Generator):
+    def make_item(self):
+        username = None
+        while not username or username in [user['username'] for user in self._items.values()]:
+            username = reduce(add, sample(ascii_letters, 10))
+        new_user = {
+            'username': username,
+            'password': reduce(add, sample(ascii_letters, 8)),
+            'email': '%s@example.com' % username,
+            }
+        return new_user
 
 class TestSettings(object):
     def __init__(self):
@@ -139,6 +159,9 @@ class TestToolsCase(TestCase):
         object.__getattribute__(self.settings, 'restore_all')()
     
     def setUp(self):
+        """
+        Be sure to call this via super() when overriding!
+        """
         # Load settings from the settings_override property.
         for k, v in self.settings_override.items():
             setattr(self.settings, k, v)
@@ -160,6 +183,9 @@ class TestToolsCase(TestCase):
             self.setUpModule()
     
     def tearDown(self):
+        """
+        Be sure to call this via super() when overriding!
+        """
         # Check if this is the last tear-down for this module
         if self._creation_counter == TestToolsCase._creation_counters.get(self._get_module(), None):
             self.tearDownModule()
