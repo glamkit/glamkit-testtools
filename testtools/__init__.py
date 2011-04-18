@@ -124,7 +124,6 @@ class TestToolsCase(TestCase):
     
     def __init__(self, *args, **kwargs):
         super(TestToolsCase, self).__init__(*args, **kwargs)
-        self.names = UniqueNameGenerator()
         self.settings = TestSettings()
         self.users = UserGenerator()
         self._test_app_loaded = False
